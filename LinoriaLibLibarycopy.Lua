@@ -3403,11 +3403,11 @@ function Library:CreateWindow(...)
 
     local WindowShadow = Library:Create('ImageLabel', {
         BackgroundTransparency = 1;
-        Position = UDim2.fromOffset(-18, -18);
-        Size = UDim2.new(1, 36, 1, 36);
+        Position = UDim2.fromOffset(-10, -10);
+        Size = UDim2.new(1, 20, 1, 20);
         Image = 'rbxassetid://1316045217';
         ImageColor3 = Color3.new(0, 0, 0);
-        ImageTransparency = 0.42;
+        ImageTransparency = 0.68;
         ScaleType = Enum.ScaleType.Slice;
         SliceCenter = Rect.new(10, 10, 118, 118);
         ZIndex = 0;
@@ -3529,7 +3529,7 @@ function Library:CreateWindow(...)
             Parent = TabArea;
         });
 
-        Library:ModernizeFrame(TabButton, Library.Modern.Radius, 'OutlineColor', 0.32);
+        Library:ModernizeFrame(TabButton, Library.Modern.Radius, 'OutlineColor', 0.46);
 
         Library:AddToRegistry(TabButton, {
             BackgroundColor3 = 'BackgroundColor';
@@ -3548,8 +3548,8 @@ function Library:CreateWindow(...)
         local Blocker = Library:Create('Frame', {
             BackgroundColor3 = Library.MainColor;
             BorderSizePixel = 0;
-            Position = UDim2.new(0, 0, 1, 0);
-            Size = UDim2.new(1, 0, 0, 1);
+            Position = UDim2.new(0, 1, 1, -1);
+            Size = UDim2.new(1, -2, 0, 1);
             BackgroundTransparency = 1;
             ZIndex = 3;
             Parent = TabButton;
@@ -3840,7 +3840,7 @@ function Library:CreateWindow(...)
                     Parent = TabboxButtons;
                 });
 
-                Library:ModernizeFrame(Button, Library.Modern.SmallRadius, 'OutlineColor', 0.35);
+                Library:ModernizeFrame(Button, Library.Modern.SmallRadius, 'OutlineColor', 0.55);
 
                 Library:AddToRegistry(Button, {
                     BackgroundColor3 = 'MainColor';
@@ -4030,12 +4030,14 @@ function Library:CreateWindow(...)
                 Cursor.Thickness = 1;
                 Cursor.Filled = true;
                 Cursor.Visible = true;
+                Cursor.Transparency = 0.92;
 
                 local CursorOutline = Drawing.new('Triangle');
                 CursorOutline.Thickness = 1;
                 CursorOutline.Filled = false;
                 CursorOutline.Color = Color3.new(0, 0, 0);
                 CursorOutline.Visible = true;
+                CursorOutline.Transparency = 0.72;
 
                 while Toggled and ScreenGui.Parent do
                     InputService.MouseIconEnabled = false;
@@ -4045,8 +4047,8 @@ function Library:CreateWindow(...)
                     Cursor.Color = Library.AccentColor;
 
                     Cursor.PointA = Vector2.new(mPos.X, mPos.Y);
-                    Cursor.PointB = Vector2.new(mPos.X + 16, mPos.Y + 6);
-                    Cursor.PointC = Vector2.new(mPos.X + 6, mPos.Y + 16);
+                    Cursor.PointB = Vector2.new(mPos.X + 12, mPos.Y + 5);
+                    Cursor.PointC = Vector2.new(mPos.X + 5, mPos.Y + 12);
 
                     CursorOutline.PointA = Cursor.PointA;
                     CursorOutline.PointB = Cursor.PointB;
