@@ -3403,11 +3403,11 @@ function Library:CreateWindow(...)
 
     local WindowShadow = Library:Create('ImageLabel', {
         BackgroundTransparency = 1;
-        Position = UDim2.fromOffset(-10, -10);
-        Size = UDim2.new(1, 20, 1, 20);
+        Position = UDim2.fromOffset(-6, -6);
+        Size = UDim2.new(1, 12, 1, 12);
         Image = 'rbxassetid://1316045217';
         ImageColor3 = Color3.new(0, 0, 0);
-        ImageTransparency = 0.68;
+        ImageTransparency = 0.82;
         ScaleType = Enum.ScaleType.Slice;
         SliceCenter = Rect.new(10, 10, 118, 118);
         ZIndex = 0;
@@ -3478,7 +3478,7 @@ function Library:CreateWindow(...)
     local TabArea = Library:Create('Frame', {
         BackgroundTransparency = 1;
         Position = UDim2.new(0, 8, 0, 8);
-        Size = UDim2.new(1, -16, 0, 21);
+        Size = UDim2.new(1, -16, 0, 24);
         ZIndex = 1;
         Parent = MainSectionInner;
     });
@@ -3494,8 +3494,8 @@ function Library:CreateWindow(...)
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.OutlineColor;
         BorderSizePixel = 0;
-        Position = UDim2.new(0, 8, 0, 30);
-        Size = UDim2.new(1, -16, 1, -38);
+        Position = UDim2.new(0, 8, 0, 36);
+        Size = UDim2.new(1, -16, 1, -44);
         ZIndex = 2;
         Parent = MainSectionInner;
     });
@@ -3529,7 +3529,7 @@ function Library:CreateWindow(...)
             Parent = TabArea;
         });
 
-        Library:ModernizeFrame(TabButton, Library.Modern.Radius, 'OutlineColor', 0.46);
+        Library:ModernizeFrame(TabButton, Library.Modern.Radius, 'OutlineColor', 0.58);
 
         Library:AddToRegistry(TabButton, {
             BackgroundColor3 = 'BackgroundColor';
@@ -3538,7 +3538,7 @@ function Library:CreateWindow(...)
 
         local TabButtonLabel = Library:CreateLabel({
             Position = UDim2.new(0, 0, 0, 0);
-            Size = UDim2.new(1, 0, 1, -1);
+            Size = UDim2.new(1, 0, 1, 0);
             Text = Name;
             TextSize = 14;
             ZIndex = 1;
@@ -3551,6 +3551,7 @@ function Library:CreateWindow(...)
             Position = UDim2.new(0, 1, 1, -1);
             Size = UDim2.new(1, -2, 0, 1);
             BackgroundTransparency = 1;
+            Visible = false;
             ZIndex = 3;
             Parent = TabButton;
         });
@@ -3634,7 +3635,7 @@ function Library:CreateWindow(...)
                 Tab:HideTab();
             end;
 
-            Blocker.BackgroundTransparency = 0;
+            Blocker.BackgroundTransparency = 1;
             TabButton.BackgroundColor3 = Library.MainColor;
             TabButtonLabel.TextColor3 = Library.AccentColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
@@ -3815,13 +3816,16 @@ function Library:CreateWindow(...)
 
             local TabboxButtons = Library:Create('Frame', {
                 BackgroundTransparency = 1;
-                Position = UDim2.new(0, 7, 0, 8);
-                Size = UDim2.new(1, -14, 0, 20);
+                Position = UDim2.new(0, 8, 0, 11);
+                Size = UDim2.new(1, -16, 0, 22);
                 ZIndex = 5;
                 Parent = BoxInner;
             });
 
+            local TabboxButtonGap = 2;
+
             Library:Create('UIListLayout', {
+                Padding = UDim.new(0, TabboxButtonGap);
                 FillDirection = Enum.FillDirection.Horizontal;
                 HorizontalAlignment = Enum.HorizontalAlignment.Left;
                 SortOrder = Enum.SortOrder.LayoutOrder;
@@ -3835,12 +3839,12 @@ function Library:CreateWindow(...)
                     BackgroundColor3 = Library.MainColor;
                     BorderColor3 = Color3.new(0, 0, 0);
                     BorderSizePixel = 0;
-                    Size = UDim2.new(0.5, 0, 1, 0);
+                    Size = UDim2.new(1, 0, 1, 0);
                     ZIndex = 6;
                     Parent = TabboxButtons;
                 });
 
-                Library:ModernizeFrame(Button, Library.Modern.SmallRadius, 'OutlineColor', 0.55);
+                Library:ModernizeFrame(Button, Library.Modern.SmallRadius, 'OutlineColor', 0.62);
 
                 Library:AddToRegistry(Button, {
                     BackgroundColor3 = 'MainColor';
@@ -3873,8 +3877,8 @@ function Library:CreateWindow(...)
 
                 local Container = Library:Create('Frame', {
                     BackgroundTransparency = 1;
-                    Position = UDim2.new(0, 8, 0, 34);
-                    Size = UDim2.new(1, -16, 1, -34);
+                    Position = UDim2.new(0, 8, 0, 39);
+                    Size = UDim2.new(1, -16, 1, -39);
                     ZIndex = 1;
                     Visible = false;
                     Parent = BoxInner;
@@ -3892,7 +3896,7 @@ function Library:CreateWindow(...)
                     end;
 
                     Container.Visible = true;
-                    Block.Visible = true;
+                    Block.Visible = false;
 
                     Button.BackgroundColor3 = Library.BackgroundColor;
                     ButtonLabel.TextColor3 = Library.AccentColor;
@@ -3921,7 +3925,7 @@ function Library:CreateWindow(...)
 
                     for _, Button in next, TabboxButtons:GetChildren() do
                         if not Button:IsA('UIListLayout') then
-                            Button.Size = UDim2.new(1 / TabCount, 0, 1, 0);
+                            Button.Size = UDim2.new(1 / TabCount, -((TabCount - 1) * TabboxButtonGap / TabCount), 1, 0);
                         end;
                     end;
 
@@ -3937,7 +3941,7 @@ function Library:CreateWindow(...)
                         end;
                     end;
 
-                    BoxOuter.Size = UDim2.new(1, 0, 0, 34 + Size + 6);
+                    BoxOuter.Size = UDim2.new(1, 0, 0, 39 + Size + 6);
                 end;
 
                 Button.InputBegan:Connect(function(Input)
