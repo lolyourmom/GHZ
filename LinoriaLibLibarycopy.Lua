@@ -296,14 +296,16 @@ function Library:MakeDraggable(Instance, Cutoff)
 end;
 
 function Library:AddToolTip(InfoStr, HoverInstance)
-    local X, Y = Library:GetTextBounds(InfoStr, Library.Font, 14);
+    local X, Y = Library:GetTextBounds(InfoStr, Library.Font, 14, Vector2.new(260, math.huge));
+    local Width, Height = X + 12, Y + 8;
+
     local Tooltip = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor,
         BorderColor3 = Library.OutlineColor,
 
         BorderSizePixel = 0;
-        Size = UDim2.fromOffset(X + 12, Y + 8),
-        ZIndex = 100,
+        Size = UDim2.fromOffset(Width, Height),
+        ZIndex = 300,
         Parent = Library.ScreenGui,
 
         Visible = false,
@@ -318,6 +320,7 @@ function Library:AddToolTip(InfoStr, HoverInstance)
         Text = InfoStr,
         TextColor3 = Library.FontColor,
         TextXAlignment = Enum.TextXAlignment.Left;
+        TextWrapped = true;
         ZIndex = Tooltip.ZIndex + 1,
 
         Parent = Tooltip;
@@ -334,6 +337,23 @@ function Library:AddToolTip(InfoStr, HoverInstance)
 
     local IsHovering = false
 
+    local function PositionTooltip()
+        local Camera = workspace.CurrentCamera
+        local Viewport = Camera and Camera.ViewportSize or Vector2.new(1920, 1080)
+        local XPos = Mouse.X + 15
+        local YPos = Mouse.Y + 12
+
+        if XPos + Width > Viewport.X - 4 then
+            XPos = Mouse.X - Width - 12
+        end
+
+        if YPos + Height > Viewport.Y - 4 then
+            YPos = Mouse.Y - Height - 10
+        end
+
+        Tooltip.Position = UDim2.fromOffset(math.max(4, XPos), math.max(4, YPos))
+    end
+
     HoverInstance.MouseEnter:Connect(function()
         if Library:MouseIsOverOpenedFrame() then
             return
@@ -341,12 +361,12 @@ function Library:AddToolTip(InfoStr, HoverInstance)
 
         IsHovering = true
 
-        Tooltip.Position = UDim2.fromOffset(Mouse.X + 15, Mouse.Y + 12)
+        PositionTooltip()
         Tooltip.Visible = true
 
         while IsHovering do
             RunService.Heartbeat:Wait()
-            Tooltip.Position = UDim2.fromOffset(Mouse.X + 15, Mouse.Y + 12)
+            PositionTooltip()
         end
     end)
 
@@ -1789,18 +1809,19 @@ do
             Type = 'Divider',
         }
 
-        Groupbox:AddBlank(2);
+        Groupbox:AddBlank(4);
         local DividerOuter = Library:Create('Frame', {
-            BackgroundColor3 = Color3.new(0, 0, 0);
+            BackgroundTransparency = 1;
             BorderColor3 = Color3.new(0, 0, 0);
             BorderSizePixel = 0;
-            Size = UDim2.new(1, -4, 0, 7);
+            Size = UDim2.new(1, -4, 0, 4);
             ZIndex = 5;
             Parent = Container;
         });
 
         local DividerInner = Library:Create('Frame', {
             BackgroundColor3 = Library.OutlineColor;
+            BackgroundTransparency = 0.35;
             BorderSizePixel = 0;
             Position = UDim2.new(0, 0, 0.5, 0);
             Size = UDim2.new(1, 0, 0, 1);
@@ -1816,7 +1837,7 @@ do
             BackgroundColor3 = 'OutlineColor';
         });
 
-        Groupbox:AddBlank(9);
+        Groupbox:AddBlank(8);
         Groupbox:Resize();
     end
 
@@ -2601,8 +2622,9 @@ do
             TopImage = 'rbxasset://textures/ui/Scroll/scroll-middle.png',
             BottomImage = 'rbxasset://textures/ui/Scroll/scroll-middle.png',
 
-            ScrollBarThickness = 3,
+            ScrollBarThickness = 2,
             ScrollBarImageColor3 = Library.AccentColor,
+            ScrollBarImageTransparency = 0.28,
         });
 
         local function UpdateDropdownSearch()
@@ -3386,7 +3408,7 @@ function Library:CreateWindow(...)
 
     local WindowLabel = Library:CreateLabel({
         Position = UDim2.new(0, 7, 0, 0);
-        Size = UDim2.new(0, 0, 0, 25);
+        Size = UDim2.new(1, -14, 0, 25);
         Text = Config.Title or '';
         TextXAlignment = Enum.TextXAlignment.Left;
         ZIndex = 1;
@@ -3525,13 +3547,14 @@ function Library:CreateWindow(...)
         local LeftSide = Library:Create('ScrollingFrame', {
             BackgroundTransparency = 1;
             BorderSizePixel = 0;
-            Position = UDim2.new(0, 8 - 1, 0, 8 - 1);
-            Size = UDim2.new(0.5, -12 + 2, 1, -14);
+            Position = UDim2.new(0, 8, 0, 8);
+            Size = UDim2.new(0.5, -14, 1, -16);
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
-            ScrollBarThickness = 3;
+            ScrollBarThickness = 2;
             ScrollBarImageColor3 = Library.AccentColor;
+            ScrollBarImageTransparency = 0.35;
             ZIndex = 2;
             Parent = TabFrame;
         });
@@ -3539,13 +3562,14 @@ function Library:CreateWindow(...)
         local RightSide = Library:Create('ScrollingFrame', {
             BackgroundTransparency = 1;
             BorderSizePixel = 0;
-            Position = UDim2.new(0.5, 4 + 1, 0, 8 - 1);
-            Size = UDim2.new(0.5, -12 + 2, 1, -14);
+            Position = UDim2.new(0.5, 8, 0, 8);
+            Size = UDim2.new(0.5, -14, 1, -16);
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
-            ScrollBarThickness = 3;
+            ScrollBarThickness = 2;
             ScrollBarImageColor3 = Library.AccentColor;
+            ScrollBarImageTransparency = 0.35;
             ZIndex = 2;
             Parent = TabFrame;
         });
