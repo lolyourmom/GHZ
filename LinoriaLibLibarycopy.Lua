@@ -470,6 +470,19 @@ function Library:GetDarkerColor(Color)
     local H, S, V = Color3.toHSV(Color);
     return Color3.fromHSV(H, S, V / 1.5);
 end;
+
+function Library:GetSwatchStrokeColor(Color)
+    local Brightness = (Color.R * 0.299) + (Color.G * 0.587) + (Color.B * 0.114);
+
+    if Brightness <= 0.16 then
+        return Color3.fromRGB(115, 115, 115);
+    elseif Brightness >= 0.86 then
+        return Color3.fromRGB(55, 55, 55);
+    end;
+
+    return Library:GetDarkerColor(Color);
+end;
+
 Library.AccentColorDark = Library:GetDarkerColor(Library.AccentColor);
 
 function Library:AddToRegistry(Instance, Properties, IsHud)
@@ -591,7 +604,7 @@ do
 
         local DisplayFrame = Library:Create('Frame', {
             BackgroundColor3 = ColorPicker.Value;
-            BorderColor3 = Library:GetDarkerColor(ColorPicker.Value);
+            BorderColor3 = Library:GetSwatchStrokeColor(ColorPicker.Value);
             BorderSizePixel = 0;
             Size = UDim2.new(0, 34, 0, 16);
             ZIndex = 6;
@@ -599,7 +612,7 @@ do
         });
 
         Library:AddCorner(DisplayFrame, Library.Modern.SmallRadius);
-        local DisplayFrameStroke = Library:AddStroke(DisplayFrame, Library:GetDarkerColor(ColorPicker.Value), 1, 0.1);
+        local DisplayFrameStroke = Library:AddStroke(DisplayFrame, Library:GetSwatchStrokeColor(ColorPicker.Value), 1, 0.1);
 
         -- Transparency image taken from https://github.com/matas3535/SplixPrivateDrawingLibrary/blob/main/Library.lua
         local CheckerFrame = Library:Create('ImageLabel', {
@@ -1074,11 +1087,11 @@ do
             Library:Create(DisplayFrame, {
                 BackgroundColor3 = ColorPicker.Value;
                 BackgroundTransparency = ColorPicker.Transparency;
-                BorderColor3 = Library:GetDarkerColor(ColorPicker.Value);
+                BorderColor3 = Library:GetSwatchStrokeColor(ColorPicker.Value);
             });
 
             if DisplayFrameStroke then
-                DisplayFrameStroke.Color = Library:GetDarkerColor(ColorPicker.Value);
+                DisplayFrameStroke.Color = Library:GetSwatchStrokeColor(ColorPicker.Value);
             end;
 
             if TransparencyBoxInner then
@@ -1299,7 +1312,7 @@ do
         local ModeSelectOuter = Library:Create('Frame', {
             BorderColor3 = Color3.new(0, 0, 0);
             BorderSizePixel = 0;
-            Position = UDim2.fromOffset(ToggleLabel.AbsolutePosition.X + ToggleLabel.AbsoluteSize.X + 4, ToggleLabel.AbsolutePosition.Y + 1);
+            Position = UDim2.fromOffset(PickOuter.AbsolutePosition.X + PickOuter.AbsoluteSize.X + 4, PickOuter.AbsolutePosition.Y + 1);
             Size = UDim2.new(0, 72, 0, 58);
             Visible = false;
             ZIndex = 14;
@@ -1308,9 +1321,13 @@ do
 
         Library:ModernizeFrame(ModeSelectOuter, Library.Modern.Radius, 'OutlineColor', 0.2);
 
-        ToggleLabel:GetPropertyChangedSignal('AbsolutePosition'):Connect(function()
-            ModeSelectOuter.Position = UDim2.fromOffset(ToggleLabel.AbsolutePosition.X + ToggleLabel.AbsoluteSize.X + 4, ToggleLabel.AbsolutePosition.Y + 1);
-        end);
+        local function UpdateModeSelectPosition()
+            ModeSelectOuter.Position = UDim2.fromOffset(PickOuter.AbsolutePosition.X + PickOuter.AbsoluteSize.X + 4, PickOuter.AbsolutePosition.Y + 1);
+        end;
+
+        PickOuter:GetPropertyChangedSignal('AbsolutePosition'):Connect(UpdateModeSelectPosition);
+        PickOuter:GetPropertyChangedSignal('AbsoluteSize'):Connect(UpdateModeSelectPosition);
+        task.spawn(UpdateModeSelectPosition);
 
         local ModeSelectInner = Library:Create('Frame', {
             BackgroundColor3 = Library.BackgroundColor;
@@ -2214,6 +2231,25 @@ do
             Parent = ToggleOuter;
         });
 
+        local function ResizeToggleAddons()
+            local Width = Container.AbsoluteSize.X;
+
+            if Width <= 0 then
+                return;
+            end;
+
+            local HitboxWidth = math.max(0, Width - 4);
+            local LabelOffset = ToggleOuter.Size.X.Offset + ToggleLabel.Position.X.Offset;
+            local LabelWidth = math.max(0, HitboxWidth - LabelOffset);
+
+            ToggleLabel.Size = UDim2.new(0, LabelWidth, 1, 0);
+            ToggleRegion.Size = UDim2.new(0, HitboxWidth, 1, 0);
+        end;
+
+        ResizeToggleAddons();
+        task.spawn(ResizeToggleAddons);
+        Container:GetPropertyChangedSignal('AbsoluteSize'):Connect(ResizeToggleAddons);
+
         Library:OnHighlight(ToggleRegion, ToggleOuter,
             { BorderColor3 = 'AccentColor' },
             { BorderColor3 = 'Black' }
@@ -3086,271 +3122,6 @@ do
 
         return Dropdown;
     end;
-
-    function Funcs:AddVisualsPreview(Idx, Info)
-        if type(Idx) == 'table' then
-            Info = Idx;
-            Idx = nil;
-        end;
-
-        Info = Info or {};
-
-        local Preview = {
-            Type = 'VisualsPreview';
-            Settings = {
-                Box = Info.Box ~= false;
-                Name = Info.Name ~= false;
-                Distance = Info.Distance ~= false;
-                Health = Info.Health ~= false;
-                Tracer = Info.Tracer == true;
-                Skeleton = Info.Skeleton == true;
-                Chams = Info.Chams == true;
-                HealthPercent = Info.HealthPercent or 0.72;
-                Color = Info.Color;
-            };
-        };
-
-        local Groupbox = self;
-        local Container = Groupbox.Container;
-        local Height = Info.Height or 170;
-
-        if Info.Text then
-            Library:CreateLabel({
-                Size = UDim2.new(1, 0, 0, 15);
-                TextSize = 14;
-                Text = Info.Text;
-                TextXAlignment = Enum.TextXAlignment.Left;
-                ZIndex = 5;
-                Parent = Container;
-            });
-
-            Groupbox:AddBlank(2);
-        end;
-
-        local Outer = Library:Create('Frame', {
-            BackgroundColor3 = Library.MainColor;
-            BorderSizePixel = 0;
-            Size = UDim2.new(1, -4, 0, Height);
-            ZIndex = 5;
-            Parent = Container;
-        });
-
-        Library:ModernizeFrame(Outer, Library.Modern.Radius, 'OutlineColor', 0.34);
-        Library:AddToRegistry(Outer, { BackgroundColor3 = 'MainColor' });
-
-        local Inner = Library:Create('Frame', {
-            BackgroundColor3 = Library.BackgroundColor;
-            BorderSizePixel = 0;
-            ClipsDescendants = true;
-            Position = UDim2.fromOffset(1, 1);
-            Size = UDim2.new(1, -2, 1, -2);
-            ZIndex = 6;
-            Parent = Outer;
-        });
-
-        Library:AddCorner(Inner, Library.Modern.Radius);
-        Library:AddToRegistry(Inner, { BackgroundColor3 = 'BackgroundColor' });
-
-        local GroundLine = Library:Create('Frame', {
-            BackgroundColor3 = Library.OutlineColor;
-            BackgroundTransparency = 0.45;
-            BorderSizePixel = 0;
-            Position = UDim2.new(0, 14, 1, -28);
-            Size = UDim2.new(1, -28, 0, 1);
-            ZIndex = 7;
-            Parent = Inner;
-        });
-
-        Library:AddToRegistry(GroundLine, { BackgroundColor3 = 'OutlineColor' });
-
-        local Player = Library:Create('Frame', {
-            AnchorPoint = Vector2.new(0.5, 0.5);
-            BackgroundTransparency = 1;
-            Position = UDim2.new(0.5, 0, 0.52, 0);
-            Size = UDim2.fromOffset(46, 86);
-            ZIndex = 8;
-            Parent = Inner;
-        });
-
-        local Chams = Library:Create('Frame', {
-            BackgroundColor3 = Library.AccentColor;
-            BackgroundTransparency = 0.82;
-            BorderSizePixel = 0;
-            Position = UDim2.fromOffset(11, 17);
-            Size = UDim2.fromOffset(24, 52);
-            Visible = false;
-            ZIndex = 8;
-            Parent = Player;
-        });
-
-        Library:AddCorner(Chams, 6);
-
-        local function Limb(Position, Size)
-            local Part = Library:Create('Frame', {
-                BackgroundColor3 = Color3.fromRGB(185, 193, 205);
-                BackgroundTransparency = 0.12;
-                BorderSizePixel = 0;
-                Position = Position;
-                Size = Size;
-                ZIndex = 9;
-                Parent = Player;
-            });
-
-            Library:AddCorner(Part, 4);
-            return Part;
-        end;
-
-        Limb(UDim2.fromOffset(15, 3), UDim2.fromOffset(16, 16));
-        Limb(UDim2.fromOffset(12, 22), UDim2.fromOffset(22, 30));
-        Limb(UDim2.fromOffset(4, 25), UDim2.fromOffset(7, 26));
-        Limb(UDim2.fromOffset(35, 25), UDim2.fromOffset(7, 26));
-        Limb(UDim2.fromOffset(12, 55), UDim2.fromOffset(8, 28));
-        Limb(UDim2.fromOffset(26, 55), UDim2.fromOffset(8, 28));
-
-        local EspBox = Library:Create('Frame', {
-            BackgroundTransparency = 1;
-            Position = UDim2.fromOffset(5, 0);
-            Size = UDim2.fromOffset(36, 86);
-            ZIndex = 12;
-            Parent = Player;
-        });
-
-        local EspStroke = Library:AddStroke(EspBox, 'AccentColor', 1, 0.05);
-
-        local HealthOuter = Library:Create('Frame', {
-            BackgroundColor3 = Library.MainColor;
-            BorderSizePixel = 0;
-            Position = UDim2.fromOffset(0, 0);
-            Size = UDim2.fromOffset(3, 86);
-            ZIndex = 12;
-            Parent = Player;
-        });
-
-        local HealthFill = Library:Create('Frame', {
-            AnchorPoint = Vector2.new(0, 1);
-            BackgroundColor3 = Color3.fromRGB(80, 225, 120);
-            BorderSizePixel = 0;
-            Position = UDim2.new(0, 0, 1, 0);
-            Size = UDim2.new(1, 0, 0.72, 0);
-            ZIndex = 13;
-            Parent = HealthOuter;
-        });
-
-        Library:AddCorner(HealthOuter, 2);
-        Library:AddCorner(HealthFill, 2);
-
-        local NameLabel = Library:CreateLabel({
-            AnchorPoint = Vector2.new(0.5, 1);
-            Position = UDim2.new(0.5, 0, 0, -5);
-            Size = UDim2.fromOffset(120, 16);
-            Text = Info.PlayerName or 'Player';
-            TextSize = 13;
-            ZIndex = 14;
-            Parent = Player;
-        });
-
-        local DistanceLabel = Library:CreateLabel({
-            AnchorPoint = Vector2.new(0.5, 0);
-            Position = UDim2.new(0.5, 0, 1, 4);
-            Size = UDim2.fromOffset(120, 16);
-            Text = Info.DistanceText or '74 studs';
-            TextSize = 12;
-            ZIndex = 14;
-            Parent = Player;
-        });
-
-        local Tracer = Library:Create('Frame', {
-            AnchorPoint = Vector2.new(0.5, 1);
-            BackgroundColor3 = Library.AccentColor;
-            BorderSizePixel = 0;
-            Position = UDim2.new(0.5, 0, 1, -10);
-            Size = UDim2.fromOffset(2, 42);
-            Visible = false;
-            ZIndex = 7;
-            Parent = Inner;
-        });
-
-        Library:AddCorner(Tracer, 2);
-
-        local Skeleton = Library:Create('Frame', {
-            BackgroundTransparency = 1;
-            Size = UDim2.fromScale(1, 1);
-            Visible = false;
-            ZIndex = 15;
-            Parent = Player;
-        });
-
-        local function Bone(Position, Size, Rotation)
-            local BoneLine = Library:Create('Frame', {
-                AnchorPoint = Vector2.new(0.5, 0.5);
-                BackgroundColor3 = Library.AccentColor;
-                BorderSizePixel = 0;
-                Position = Position;
-                Rotation = Rotation or 0;
-                Size = Size;
-                ZIndex = 15;
-                Parent = Skeleton;
-            });
-
-            Library:AddCorner(BoneLine, 2);
-            return BoneLine;
-        end;
-
-        Bone(UDim2.fromOffset(23, 31), UDim2.fromOffset(2, 27));
-        Bone(UDim2.fromOffset(14, 35), UDim2.fromOffset(2, 24), 28);
-        Bone(UDim2.fromOffset(32, 35), UDim2.fromOffset(2, 24), -28);
-        Bone(UDim2.fromOffset(18, 62), UDim2.fromOffset(2, 30), 12);
-        Bone(UDim2.fromOffset(28, 62), UDim2.fromOffset(2, 30), -12);
-
-        function Preview:Update(NewSettings)
-            for Key, Value in next, NewSettings or {} do
-                Preview.Settings[Key] = Value;
-            end;
-
-            local Accent = Preview.Settings.Color or Library.AccentColor;
-
-            EspBox.Visible = Preview.Settings.Box;
-            NameLabel.Visible = Preview.Settings.Name;
-            DistanceLabel.Visible = Preview.Settings.Distance;
-            HealthOuter.Visible = Preview.Settings.Health;
-            Tracer.Visible = Preview.Settings.Tracer;
-            Skeleton.Visible = Preview.Settings.Skeleton;
-            Chams.Visible = Preview.Settings.Chams;
-
-            if EspStroke then
-                EspStroke.Color = Accent;
-            end;
-
-            Tracer.BackgroundColor3 = Accent;
-            Chams.BackgroundColor3 = Accent;
-
-            for _, BoneLine in next, Skeleton:GetChildren() do
-                if BoneLine:IsA('Frame') then
-                    BoneLine.BackgroundColor3 = Accent;
-                end;
-            end;
-
-            HealthFill.Size = UDim2.new(1, 0, math.clamp(Preview.Settings.HealthPercent or 0.72, 0, 1), 0);
-        end;
-
-        function Preview:UpdateColors()
-            Preview:Update();
-        end;
-
-        Preview.Frame = Outer;
-        Preview:Update();
-
-        Groupbox:AddBlank(Info.BlankSize or 6);
-        Groupbox:Resize();
-
-        if Idx then
-            Options[Idx] = Preview;
-        end;
-
-        return Preview;
-    end;
-
-    Funcs.AddESPPreview = Funcs.AddVisualsPreview;
 
     function Funcs:AddDependencyBox()
         local Depbox = {
