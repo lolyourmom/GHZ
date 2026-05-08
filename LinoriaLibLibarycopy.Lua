@@ -4,6 +4,7 @@ local CoreGui = game:GetService('CoreGui');
 local Teams = game:GetService('Teams');
 local Players = game:GetService('Players');
 local RunService = game:GetService('RunService')
+local StatsService = game:GetService('Stats');
 local TweenService = game:GetService('TweenService');
 local RenderStepped = RunService.RenderStepped;
 local LocalPlayer = Players.LocalPlayer;
@@ -39,6 +40,18 @@ local Library = {
     Black = Color3.fromRGB(5, 7, 10);
     Font = Enum.Font.Gotham,
     CustomCursor = false;
+    FPS = 0;
+    StartedAt = os.clock();
+
+    WatermarkAutoUpdate = false;
+    WatermarkItems = nil;
+    WatermarkOptions = {
+        Title = 'LinoriaLib demo';
+        Separator = ' | ';
+        UpdateInterval = 0.25;
+        Position = 'TopCenter';
+    };
+    KeybindsActiveOnly = false;
 
     Modern = {
         Enabled = true;
@@ -59,6 +72,19 @@ local RainbowStep = 0
 local Hue = 0
 
 table.insert(Library.Signals, RenderStepped:Connect(function(Delta)
+    if Delta > 0 then
+        Library.FPS = math.floor((1 / Delta) + 0.5);
+    end;
+
+    if Library.WatermarkAutoUpdate and Library.UpdateWatermarkText then
+        local Now = os.clock();
+
+        if (not Library.LastWatermarkUpdate) or Now - Library.LastWatermarkUpdate >= (Library.WatermarkOptions.UpdateInterval or 0.25) then
+            Library.LastWatermarkUpdate = Now;
+            Library:UpdateWatermarkText();
+        end;
+    end;
+
     RainbowStep = RainbowStep + Delta
 
     if RainbowStep >= (1 / 60) then
@@ -1222,6 +1248,7 @@ do
             Toggled = false;
             Mode = Info.Mode or 'Toggle'; -- Always, Toggle, Hold
             Type = 'KeyPicker';
+            Text = Info.Text;
             Callback = Info.Callback or function(Value) end;
             ChangedCallback = Info.ChangedCallback or function(New) end;
 
@@ -1309,14 +1336,71 @@ do
 
         Library:AddPadding(ModeSelectInner, 6, 6, 3, 3);
 
-        local ContainerLabel = Library:CreateLabel({
-            TextXAlignment = Enum.TextXAlignment.Left;
-            Size = UDim2.new(1, 0, 0, 18);
-            TextSize = 13;
+        local ContainerLabel = Library:Create('Frame', {
+            BackgroundColor3 = Library.MainColor;
+            BorderSizePixel = 0;
+            Size = UDim2.new(1, -10, 0, 22);
             Visible = false;
             ZIndex = 110;
             Parent = Library.KeybindContainer;
-        },  true);
+        });
+
+        Library:ModernizeFrame(ContainerLabel, Library.Modern.SmallRadius, 'OutlineColor', 0.68, true);
+        Library:AddToRegistry(ContainerLabel, { BackgroundColor3 = 'MainColor' }, true);
+
+        local ActiveDot = Library:Create('Frame', {
+            BackgroundColor3 = Library.OutlineColor;
+            BorderSizePixel = 0;
+            Position = UDim2.fromOffset(7, 8);
+            Size = UDim2.fromOffset(6, 6);
+            ZIndex = 112;
+            Parent = ContainerLabel;
+        });
+
+        Library:AddCorner(ActiveDot, 3);
+        Library:AddToRegistry(ActiveDot, { BackgroundColor3 = 'OutlineColor' }, true);
+
+        local KeyBadge = Library:Create('Frame', {
+            BackgroundColor3 = Library.BackgroundColor;
+            BorderSizePixel = 0;
+            Position = UDim2.fromOffset(18, 3);
+            Size = UDim2.fromOffset(42, 16);
+            ZIndex = 111;
+            Parent = ContainerLabel;
+        });
+
+        Library:ModernizeFrame(KeyBadge, Library.Modern.SmallRadius, 'OutlineColor', 0.42, true);
+        Library:AddToRegistry(KeyBadge, { BackgroundColor3 = 'BackgroundColor' }, true);
+
+        local KeyLabel = Library:CreateLabel({
+            Size = UDim2.new(1, 0, 1, 0);
+            TextSize = 12;
+            Text = KeyPicker.Value;
+            ZIndex = 112;
+            Parent = KeyBadge;
+        }, true);
+
+        local NameLabel = Library:CreateLabel({
+            Position = UDim2.fromOffset(68, 0);
+            Size = UDim2.new(1, -126, 1, 0);
+            TextSize = 13;
+            Text = Info.Text;
+            TextXAlignment = Enum.TextXAlignment.Left;
+            TextTruncate = Enum.TextTruncate.AtEnd;
+            ZIndex = 112;
+            Parent = ContainerLabel;
+        }, true);
+
+        local ModeLabel = Library:CreateLabel({
+            AnchorPoint = Vector2.new(1, 0);
+            Position = UDim2.new(1, -6, 0, 0);
+            Size = UDim2.fromOffset(54, 22);
+            TextSize = 12;
+            Text = KeyPicker.Mode;
+            TextXAlignment = Enum.TextXAlignment.Right;
+            ZIndex = 112;
+            Parent = ContainerLabel;
+        }, true);
 
         local Modes = Info.Modes or { 'Always', 'Toggle', 'Hold' };
         local ModeButtons = {};
@@ -1344,6 +1428,10 @@ do
                 Library.RegistryMap[Label].Properties.TextColor3 = 'AccentColor';
 
                 ModeSelectOuter.Visible = false;
+
+                if KeyPicker.Update then
+                    KeyPicker:Update();
+                end;
             end;
 
             function ModeButton:Deselect()
@@ -1374,26 +1462,20 @@ do
 
             local State = KeyPicker:GetState();
 
-            ContainerLabel.Text = string.format('[%s] %s (%s)', KeyPicker.Value, Info.Text, KeyPicker.Mode);
+            KeyLabel.Text = KeyPicker.Value;
+            NameLabel.Text = Info.Text;
+            ModeLabel.Text = KeyPicker.Mode;
 
-            ContainerLabel.Visible = true;
-            ContainerLabel.TextColor3 = State and Library.AccentColor or Library.FontColor;
+            ContainerLabel.Visible = not (Library.KeybindsActiveOnly and not State);
+            ActiveDot.BackgroundColor3 = State and Library.AccentColor or Library.OutlineColor;
+            NameLabel.TextColor3 = State and Library.AccentColor or Library.FontColor;
+            ModeLabel.TextColor3 = State and Library.FontColor or Library.OutlineColor;
 
-            Library.RegistryMap[ContainerLabel].Properties.TextColor3 = State and 'AccentColor' or 'FontColor';
+            Library.RegistryMap[ActiveDot].Properties.BackgroundColor3 = State and 'AccentColor' or 'OutlineColor';
+            Library.RegistryMap[NameLabel].Properties.TextColor3 = State and 'AccentColor' or 'FontColor';
+            Library.RegistryMap[ModeLabel].Properties.TextColor3 = State and 'FontColor' or 'OutlineColor';
 
-            local YSize = 0
-            local XSize = 0
-
-            for _, Label in next, Library.KeybindContainer:GetChildren() do
-                if Label:IsA('TextLabel') and Label.Visible then
-                    YSize = YSize + 18;
-                    if (Label.TextBounds.X > XSize) then
-                        XSize = Label.TextBounds.X
-                    end
-                end;
-            end;
-
-            Library.KeybindFrame.Size = UDim2.new(0, math.max(XSize + 10, 210), 0, YSize + 23)
+            Library:ResizeKeybindFrame();
         end;
 
         function KeyPicker:GetState()
@@ -1423,6 +1505,7 @@ do
             KeyPicker.Value = Key;
             ModeButtons[Mode]:Select();
             KeyPicker:Update();
+            Library:WarnKeybindConflict(KeyPicker);
         end;
 
         function KeyPicker:OnClick(Callback)
@@ -1494,6 +1577,8 @@ do
 
                     DisplayLabel.Text = Key;
                     KeyPicker.Value = Key;
+                    KeyPicker:Update();
+                    Library:WarnKeybindConflict(KeyPicker);
 
                     Library:SafeCallback(KeyPicker.ChangedCallback, Input.KeyCode or Input.UserInputType)
                     Library:SafeCallback(KeyPicker.Changed, Input.KeyCode or Input.UserInputType)
@@ -3002,6 +3087,271 @@ do
         return Dropdown;
     end;
 
+    function Funcs:AddVisualsPreview(Idx, Info)
+        if type(Idx) == 'table' then
+            Info = Idx;
+            Idx = nil;
+        end;
+
+        Info = Info or {};
+
+        local Preview = {
+            Type = 'VisualsPreview';
+            Settings = {
+                Box = Info.Box ~= false;
+                Name = Info.Name ~= false;
+                Distance = Info.Distance ~= false;
+                Health = Info.Health ~= false;
+                Tracer = Info.Tracer == true;
+                Skeleton = Info.Skeleton == true;
+                Chams = Info.Chams == true;
+                HealthPercent = Info.HealthPercent or 0.72;
+                Color = Info.Color;
+            };
+        };
+
+        local Groupbox = self;
+        local Container = Groupbox.Container;
+        local Height = Info.Height or 170;
+
+        if Info.Text then
+            Library:CreateLabel({
+                Size = UDim2.new(1, 0, 0, 15);
+                TextSize = 14;
+                Text = Info.Text;
+                TextXAlignment = Enum.TextXAlignment.Left;
+                ZIndex = 5;
+                Parent = Container;
+            });
+
+            Groupbox:AddBlank(2);
+        end;
+
+        local Outer = Library:Create('Frame', {
+            BackgroundColor3 = Library.MainColor;
+            BorderSizePixel = 0;
+            Size = UDim2.new(1, -4, 0, Height);
+            ZIndex = 5;
+            Parent = Container;
+        });
+
+        Library:ModernizeFrame(Outer, Library.Modern.Radius, 'OutlineColor', 0.34);
+        Library:AddToRegistry(Outer, { BackgroundColor3 = 'MainColor' });
+
+        local Inner = Library:Create('Frame', {
+            BackgroundColor3 = Library.BackgroundColor;
+            BorderSizePixel = 0;
+            ClipsDescendants = true;
+            Position = UDim2.fromOffset(1, 1);
+            Size = UDim2.new(1, -2, 1, -2);
+            ZIndex = 6;
+            Parent = Outer;
+        });
+
+        Library:AddCorner(Inner, Library.Modern.Radius);
+        Library:AddToRegistry(Inner, { BackgroundColor3 = 'BackgroundColor' });
+
+        local GroundLine = Library:Create('Frame', {
+            BackgroundColor3 = Library.OutlineColor;
+            BackgroundTransparency = 0.45;
+            BorderSizePixel = 0;
+            Position = UDim2.new(0, 14, 1, -28);
+            Size = UDim2.new(1, -28, 0, 1);
+            ZIndex = 7;
+            Parent = Inner;
+        });
+
+        Library:AddToRegistry(GroundLine, { BackgroundColor3 = 'OutlineColor' });
+
+        local Player = Library:Create('Frame', {
+            AnchorPoint = Vector2.new(0.5, 0.5);
+            BackgroundTransparency = 1;
+            Position = UDim2.new(0.5, 0, 0.52, 0);
+            Size = UDim2.fromOffset(46, 86);
+            ZIndex = 8;
+            Parent = Inner;
+        });
+
+        local Chams = Library:Create('Frame', {
+            BackgroundColor3 = Library.AccentColor;
+            BackgroundTransparency = 0.82;
+            BorderSizePixel = 0;
+            Position = UDim2.fromOffset(11, 17);
+            Size = UDim2.fromOffset(24, 52);
+            Visible = false;
+            ZIndex = 8;
+            Parent = Player;
+        });
+
+        Library:AddCorner(Chams, 6);
+
+        local function Limb(Position, Size)
+            local Part = Library:Create('Frame', {
+                BackgroundColor3 = Color3.fromRGB(185, 193, 205);
+                BackgroundTransparency = 0.12;
+                BorderSizePixel = 0;
+                Position = Position;
+                Size = Size;
+                ZIndex = 9;
+                Parent = Player;
+            });
+
+            Library:AddCorner(Part, 4);
+            return Part;
+        end;
+
+        Limb(UDim2.fromOffset(15, 3), UDim2.fromOffset(16, 16));
+        Limb(UDim2.fromOffset(12, 22), UDim2.fromOffset(22, 30));
+        Limb(UDim2.fromOffset(4, 25), UDim2.fromOffset(7, 26));
+        Limb(UDim2.fromOffset(35, 25), UDim2.fromOffset(7, 26));
+        Limb(UDim2.fromOffset(12, 55), UDim2.fromOffset(8, 28));
+        Limb(UDim2.fromOffset(26, 55), UDim2.fromOffset(8, 28));
+
+        local EspBox = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Position = UDim2.fromOffset(5, 0);
+            Size = UDim2.fromOffset(36, 86);
+            ZIndex = 12;
+            Parent = Player;
+        });
+
+        local EspStroke = Library:AddStroke(EspBox, 'AccentColor', 1, 0.05);
+
+        local HealthOuter = Library:Create('Frame', {
+            BackgroundColor3 = Library.MainColor;
+            BorderSizePixel = 0;
+            Position = UDim2.fromOffset(0, 0);
+            Size = UDim2.fromOffset(3, 86);
+            ZIndex = 12;
+            Parent = Player;
+        });
+
+        local HealthFill = Library:Create('Frame', {
+            AnchorPoint = Vector2.new(0, 1);
+            BackgroundColor3 = Color3.fromRGB(80, 225, 120);
+            BorderSizePixel = 0;
+            Position = UDim2.new(0, 0, 1, 0);
+            Size = UDim2.new(1, 0, 0.72, 0);
+            ZIndex = 13;
+            Parent = HealthOuter;
+        });
+
+        Library:AddCorner(HealthOuter, 2);
+        Library:AddCorner(HealthFill, 2);
+
+        local NameLabel = Library:CreateLabel({
+            AnchorPoint = Vector2.new(0.5, 1);
+            Position = UDim2.new(0.5, 0, 0, -5);
+            Size = UDim2.fromOffset(120, 16);
+            Text = Info.PlayerName or 'Player';
+            TextSize = 13;
+            ZIndex = 14;
+            Parent = Player;
+        });
+
+        local DistanceLabel = Library:CreateLabel({
+            AnchorPoint = Vector2.new(0.5, 0);
+            Position = UDim2.new(0.5, 0, 1, 4);
+            Size = UDim2.fromOffset(120, 16);
+            Text = Info.DistanceText or '74 studs';
+            TextSize = 12;
+            ZIndex = 14;
+            Parent = Player;
+        });
+
+        local Tracer = Library:Create('Frame', {
+            AnchorPoint = Vector2.new(0.5, 1);
+            BackgroundColor3 = Library.AccentColor;
+            BorderSizePixel = 0;
+            Position = UDim2.new(0.5, 0, 1, -10);
+            Size = UDim2.fromOffset(2, 42);
+            Visible = false;
+            ZIndex = 7;
+            Parent = Inner;
+        });
+
+        Library:AddCorner(Tracer, 2);
+
+        local Skeleton = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Size = UDim2.fromScale(1, 1);
+            Visible = false;
+            ZIndex = 15;
+            Parent = Player;
+        });
+
+        local function Bone(Position, Size, Rotation)
+            local BoneLine = Library:Create('Frame', {
+                AnchorPoint = Vector2.new(0.5, 0.5);
+                BackgroundColor3 = Library.AccentColor;
+                BorderSizePixel = 0;
+                Position = Position;
+                Rotation = Rotation or 0;
+                Size = Size;
+                ZIndex = 15;
+                Parent = Skeleton;
+            });
+
+            Library:AddCorner(BoneLine, 2);
+            return BoneLine;
+        end;
+
+        Bone(UDim2.fromOffset(23, 31), UDim2.fromOffset(2, 27));
+        Bone(UDim2.fromOffset(14, 35), UDim2.fromOffset(2, 24), 28);
+        Bone(UDim2.fromOffset(32, 35), UDim2.fromOffset(2, 24), -28);
+        Bone(UDim2.fromOffset(18, 62), UDim2.fromOffset(2, 30), 12);
+        Bone(UDim2.fromOffset(28, 62), UDim2.fromOffset(2, 30), -12);
+
+        function Preview:Update(NewSettings)
+            for Key, Value in next, NewSettings or {} do
+                Preview.Settings[Key] = Value;
+            end;
+
+            local Accent = Preview.Settings.Color or Library.AccentColor;
+
+            EspBox.Visible = Preview.Settings.Box;
+            NameLabel.Visible = Preview.Settings.Name;
+            DistanceLabel.Visible = Preview.Settings.Distance;
+            HealthOuter.Visible = Preview.Settings.Health;
+            Tracer.Visible = Preview.Settings.Tracer;
+            Skeleton.Visible = Preview.Settings.Skeleton;
+            Chams.Visible = Preview.Settings.Chams;
+
+            if EspStroke then
+                EspStroke.Color = Accent;
+            end;
+
+            Tracer.BackgroundColor3 = Accent;
+            Chams.BackgroundColor3 = Accent;
+
+            for _, BoneLine in next, Skeleton:GetChildren() do
+                if BoneLine:IsA('Frame') then
+                    BoneLine.BackgroundColor3 = Accent;
+                end;
+            end;
+
+            HealthFill.Size = UDim2.new(1, 0, math.clamp(Preview.Settings.HealthPercent or 0.72, 0, 1), 0);
+        end;
+
+        function Preview:UpdateColors()
+            Preview:Update();
+        end;
+
+        Preview.Frame = Outer;
+        Preview:Update();
+
+        Groupbox:AddBlank(Info.BlankSize or 6);
+        Groupbox:Resize();
+
+        if Idx then
+            Options[Idx] = Preview;
+        end;
+
+        return Preview;
+    end;
+
+    Funcs.AddESPPreview = Funcs.AddVisualsPreview;
+
     function Funcs:AddDependencyBox()
         local Depbox = {
             Dependencies = {};
@@ -3242,6 +3592,8 @@ do
 
     Library:Create('UIPadding', {
         PaddingLeft = UDim.new(0, 5),
+        PaddingRight = UDim.new(0, 5),
+        PaddingBottom = UDim.new(0, 5),
         Parent = KeybindContainer,
     })
 
@@ -3250,11 +3602,191 @@ do
     Library:MakeDraggable(KeybindOuter);
 end;
 
+function Library:ResizeKeybindFrame()
+    local YSize = 0;
+    local XSize = 0;
+
+    for _, Row in next, Library.KeybindContainer:GetChildren() do
+        if Row:IsA('Frame') and Row.Visible then
+            YSize = YSize + Row.Size.Y.Offset;
+
+            local RowWidth = 190;
+
+            for _, Descendant in next, Row:GetDescendants() do
+                if Descendant:IsA('TextLabel') then
+                    RowWidth = math.max(RowWidth, Descendant.AbsolutePosition.X - Row.AbsolutePosition.X + Descendant.TextBounds.X + 12);
+                end;
+            end;
+
+            XSize = math.max(XSize, RowWidth);
+        end;
+    end;
+
+    Library.KeybindFrame.Size = UDim2.new(0, math.max(XSize + 12, 220), 0, math.max(YSize + 26, 26));
+end;
+
+function Library:SetKeybindListMode(Mode)
+    Library.KeybindsActiveOnly = Mode == 'ActiveOnly';
+
+    for _, Option in next, Options do
+        if type(Option) == 'table' and Option.Type == 'KeyPicker' then
+            Option:Update();
+        end;
+    end;
+end;
+
+function Library:GetKeybindConflict(KeyPicker)
+    if not KeyPicker or KeyPicker.Value == 'None' then
+        return;
+    end;
+
+    for _, Option in next, Options do
+        if Option ~= KeyPicker and type(Option) == 'table' and Option.Type == 'KeyPicker' and Option.Value == KeyPicker.Value then
+            return Option;
+        end;
+    end;
+end;
+
+function Library:WarnKeybindConflict(KeyPicker)
+    local Conflict = Library:GetKeybindConflict(KeyPicker);
+
+    if Conflict and Library.Notify then
+        Library:Notify(string.format('%s is already bound to %s', KeyPicker.Value, Conflict.Text or 'another action'), 3);
+    end;
+end;
+
 function Library:SetWatermarkVisibility(Bool)
     Library.Watermark.Visible = Bool;
 end;
 
-function Library:SetWatermark(Text)
+function Library:SetWatermarkPosition(Position, Offset)
+    Position = Position or Library.WatermarkOptions.Position or 'TopCenter';
+    Offset = Offset or Vector2.new(0, 8);
+
+    local Positions = {
+        TopLeft = { Vector2.new(0, 0), UDim2.new(0, Offset.X, 0, Offset.Y) };
+        TopCenter = { Vector2.new(0.5, 0), UDim2.new(0.5, Offset.X, 0, Offset.Y) };
+        TopRight = { Vector2.new(1, 0), UDim2.new(1, -Offset.X, 0, Offset.Y) };
+        BottomLeft = { Vector2.new(0, 1), UDim2.new(0, Offset.X, 1, -Offset.Y) };
+        BottomCenter = { Vector2.new(0.5, 1), UDim2.new(0.5, Offset.X, 1, -Offset.Y) };
+        BottomRight = { Vector2.new(1, 1), UDim2.new(1, -Offset.X, 1, -Offset.Y) };
+    };
+
+    local Data = Positions[Position] or Positions.TopCenter;
+
+    Library.Watermark.AnchorPoint = Data[1];
+    Library.Watermark.Position = Data[2];
+    Library.WatermarkOptions.Position = Position;
+end;
+
+function Library:GetWatermarkItemValue(Item)
+    if type(Item) == 'function' then
+        local Success, Result = pcall(Item, Library);
+        return Success and tostring(Result) or nil;
+    end;
+
+    local Key = tostring(Item):lower();
+
+    if Key == 'title' or Key == 'name' then
+        return Library.WatermarkOptions.Title or 'LinoriaLib';
+    elseif Key == 'fps' then
+        return string.format('%d fps', Library.FPS or 0);
+    elseif Key == 'ping' or Key == 'latency' then
+        local Success, Result = pcall(function()
+            local PingItem = StatsService.Network.ServerStatsItem['Data Ping'];
+            return PingItem:GetValueString();
+        end);
+
+        return Success and tostring(Result) or '0 ms';
+    elseif Key == 'executor' then
+        if type(identifyexecutor) == 'function' then
+            local Success, Name, Version = pcall(identifyexecutor);
+
+            if Success then
+                return Version and string.format('%s %s', tostring(Name), tostring(Version)) or tostring(Name);
+            end;
+        end;
+
+        return 'Unknown executor';
+    elseif Key == 'players' then
+        return string.format('%d/%d players', #Players:GetPlayers(), Players.MaxPlayers);
+    elseif Key == 'time' then
+        return os.date('%H:%M:%S');
+    elseif Key == 'uptime' then
+        local Seconds = math.floor(os.clock() - Library.StartedAt);
+        return string.format('%02d:%02d:%02d', math.floor(Seconds / 3600), math.floor((Seconds % 3600) / 60), Seconds % 60);
+    elseif Key == 'user' or Key == 'username' then
+        return LocalPlayer and LocalPlayer.Name or 'Player';
+    elseif Key == 'displayname' then
+        return LocalPlayer and LocalPlayer.DisplayName or 'Player';
+    elseif Key == 'place' or Key == 'game' then
+        return game.Name;
+    elseif Key == 'placeid' then
+        return tostring(game.PlaceId);
+    elseif Key == 'jobid' then
+        return game.JobId ~= '' and game.JobId or 'Studio';
+    end;
+
+    return tostring(Item);
+end;
+
+function Library:BuildWatermarkText()
+    local Items = Library.WatermarkItems or { 'title', 'fps', 'ping' };
+    local Parts = {};
+
+    for _, Item in next, Items do
+        local Value = Library:GetWatermarkItemValue(Item);
+
+        if Value and Value ~= '' then
+            table.insert(Parts, Value);
+        end;
+    end;
+
+    return table.concat(Parts, Library.WatermarkOptions.Separator or ' | ');
+end;
+
+function Library:UpdateWatermarkText()
+    Library:SetWatermark(Library:BuildWatermarkText(), true);
+end;
+
+function Library:SetWatermarkItems(Items, Options)
+    Library.WatermarkItems = Items or { 'title', 'fps', 'ping' };
+
+    for Key, Value in next, Options or {} do
+        Library.WatermarkOptions[Key] = Value;
+    end;
+
+    if Library.WatermarkOptions.Position then
+        Library:SetWatermarkPosition(Library.WatermarkOptions.Position, Library.WatermarkOptions.Offset);
+    end;
+
+    Library.WatermarkAutoUpdate = true;
+    Library:UpdateWatermarkText();
+end;
+
+function Library:SetWatermarkOptions(Options)
+    for Key, Value in next, Options or {} do
+        Library.WatermarkOptions[Key] = Value;
+    end;
+
+    if Library.WatermarkOptions.Position then
+        Library:SetWatermarkPosition(Library.WatermarkOptions.Position, Library.WatermarkOptions.Offset);
+    end;
+
+    if Library.WatermarkAutoUpdate then
+        Library:UpdateWatermarkText();
+    end;
+end;
+
+function Library:ClearWatermarkItems()
+    Library.WatermarkAutoUpdate = false;
+end;
+
+function Library:SetWatermark(Text, KeepAutoUpdate)
+    if not KeepAutoUpdate then
+        Library.WatermarkAutoUpdate = false;
+    end;
+
     local X, Y = Library:GetTextBounds(Text, Library.Font, 14);
     Library.Watermark.Size = UDim2.new(0, X + 15, 0, (Y * 1.5) + 3);
     Library:SetWatermarkVisibility(true)
