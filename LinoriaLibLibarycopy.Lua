@@ -3452,7 +3452,7 @@ function Library:CreateWindow(...)
         Parent = Inner;
     });
 
-    Library:ModernizeFrame(MainSectionOuter, Library.Modern.Radius, 'OutlineColor', 0.22);
+    Library:ModernizeFrame(MainSectionOuter, Library.Modern.Radius, 'OutlineColor', 0.34);
 
     Library:AddToRegistry(MainSectionOuter, {
         BackgroundColor3 = 'BackgroundColor';
@@ -3500,7 +3500,7 @@ function Library:CreateWindow(...)
         Parent = MainSectionInner;
     });
 
-    Library:ModernizeFrame(TabContainer, Library.Modern.Radius, 'OutlineColor', 0.26);
+    Library:ModernizeFrame(TabContainer, Library.Modern.Radius, 'OutlineColor', 0.36);
     
 
     Library:AddToRegistry(TabContainer, {
@@ -3669,7 +3669,7 @@ function Library:CreateWindow(...)
                 Parent = Info.Side == 1 and LeftSide or RightSide;
             });
 
-            Library:ModernizeFrame(BoxOuter, Library.Modern.Radius, 'OutlineColor', 0.24);
+            Library:ModernizeFrame(BoxOuter, Library.Modern.Radius, 'OutlineColor', 0.36);
 
             Library:AddToRegistry(BoxOuter, {
                 BackgroundColor3 = 'BackgroundColor';
@@ -3695,8 +3695,8 @@ function Library:CreateWindow(...)
             local Highlight = Library:Create('Frame', {
                 BackgroundColor3 = Library.AccentColor;
                 BorderSizePixel = 0;
-                Position = UDim2.fromOffset(7, 5);
-                Size = UDim2.new(1, -14, 0, 2);
+                Position = UDim2.fromOffset(12, 7);
+                Size = UDim2.new(1, -24, 0, 2);
                 ZIndex = 5;
                 Parent = BoxInner;
             });
@@ -3709,7 +3709,7 @@ function Library:CreateWindow(...)
 
             local GroupboxLabel = Library:CreateLabel({
                 Size = UDim2.new(1, 0, 0, 18);
-                Position = UDim2.new(0, 8, 0, 7);
+                Position = UDim2.new(0, 12, 0, 10);
                 TextSize = 14;
                 Text = Info.Name;
                 TextXAlignment = Enum.TextXAlignment.Left;
@@ -3719,8 +3719,8 @@ function Library:CreateWindow(...)
 
             local Container = Library:Create('Frame', {
                 BackgroundTransparency = 1;
-                Position = UDim2.new(0, 8, 0, 26);
-                Size = UDim2.new(1, -16, 1, -26);
+                Position = UDim2.new(0, 12, 0, 30);
+                Size = UDim2.new(1, -24, 1, -30);
                 ZIndex = 1;
                 Parent = BoxInner;
             });
@@ -3740,7 +3740,7 @@ function Library:CreateWindow(...)
                     end;
                 end;
 
-                BoxOuter.Size = UDim2.new(1, 0, 0, 26 + Size + 6);
+                BoxOuter.Size = UDim2.new(1, 0, 0, 30 + Size + 6);
             end;
 
             Groupbox.Container = Container;
@@ -3776,7 +3776,7 @@ function Library:CreateWindow(...)
                 Parent = Info.Side == 1 and LeftSide or RightSide;
             });
 
-            Library:ModernizeFrame(BoxOuter, Library.Modern.Radius, 'OutlineColor', 0.24);
+            Library:ModernizeFrame(BoxOuter, Library.Modern.Radius, 'OutlineColor', 0.36);
 
             Library:AddToRegistry(BoxOuter, {
                 BackgroundColor3 = 'BackgroundColor';
@@ -3802,8 +3802,8 @@ function Library:CreateWindow(...)
             local Highlight = Library:Create('Frame', {
                 BackgroundColor3 = Library.AccentColor;
                 BorderSizePixel = 0;
-                Position = UDim2.fromOffset(7, 5);
-                Size = UDim2.new(1, -14, 0, 2);
+                Position = UDim2.fromOffset(12, 7);
+                Size = UDim2.new(1, -24, 0, 2);
                 ZIndex = 10;
                 Parent = BoxInner;
             });
@@ -3816,13 +3816,13 @@ function Library:CreateWindow(...)
 
             local TabboxButtons = Library:Create('Frame', {
                 BackgroundTransparency = 1;
-                Position = UDim2.new(0, 8, 0, 11);
-                Size = UDim2.new(1, -16, 0, 22);
+                Position = UDim2.new(0, 12, 0, 14);
+                Size = UDim2.new(1, -24, 0, 22);
                 ZIndex = 5;
                 Parent = BoxInner;
             });
 
-            local TabboxButtonGap = 3;
+            local TabboxButtonGap = 4;
 
             Library:Create('UIListLayout', {
                 Padding = UDim.new(0, TabboxButtonGap);
@@ -3877,8 +3877,8 @@ function Library:CreateWindow(...)
 
                 local Container = Library:Create('Frame', {
                     BackgroundTransparency = 1;
-                    Position = UDim2.new(0, 8, 0, 39);
-                    Size = UDim2.new(1, -16, 1, -39);
+                    Position = UDim2.new(0, 12, 0, 43);
+                    Size = UDim2.new(1, -24, 1, -43);
                     ZIndex = 1;
                     Visible = false;
                     Parent = BoxInner;
@@ -3941,7 +3941,7 @@ function Library:CreateWindow(...)
                         end;
                     end;
 
-                    BoxOuter.Size = UDim2.new(1, 0, 0, 39 + Size + 6);
+                    BoxOuter.Size = UDim2.new(1, 0, 0, 43 + Size + 6);
                 end;
 
                 Button.InputBegan:Connect(function(Input)
