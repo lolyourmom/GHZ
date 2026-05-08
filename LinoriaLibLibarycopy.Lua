@@ -3822,7 +3822,7 @@ function Library:CreateWindow(...)
                 Parent = BoxInner;
             });
 
-            local TabboxButtonGap = 4;
+            local TabboxButtonGap = 6;
 
             Library:Create('UIListLayout', {
                 Padding = UDim.new(0, TabboxButtonGap);
