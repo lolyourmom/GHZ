@@ -605,9 +605,26 @@ do
 
         Library:ModernizeFrame(PickerFrameOuter, Library.Modern.LargeRadius, 'AccentColor', 0.15);
 
-        DisplayFrame:GetPropertyChangedSignal('AbsolutePosition'):Connect(function()
-            PickerFrameOuter.Position = UDim2.fromOffset(DisplayFrame.AbsolutePosition.X, DisplayFrame.AbsolutePosition.Y + 18);
-        end)
+        local function UpdatePickerPosition()
+            local Camera = workspace.CurrentCamera
+            local Viewport = Camera and Camera.ViewportSize or Vector2.new(1920, 1080)
+            local XPos = DisplayFrame.AbsolutePosition.X
+            local YPos = DisplayFrame.AbsolutePosition.Y + 18
+            local PickerSize = PickerFrameOuter.AbsoluteSize
+
+            if XPos + PickerSize.X > Viewport.X - 4 then
+                XPos = DisplayFrame.AbsolutePosition.X + DisplayFrame.AbsoluteSize.X - PickerSize.X
+            end
+
+            if YPos + PickerSize.Y > Viewport.Y - 4 then
+                YPos = DisplayFrame.AbsolutePosition.Y - PickerSize.Y - 4
+            end
+
+            PickerFrameOuter.Position = UDim2.fromOffset(math.max(4, XPos), math.max(4, YPos));
+        end
+
+        DisplayFrame:GetPropertyChangedSignal('AbsolutePosition'):Connect(UpdatePickerPosition)
+        PickerFrameOuter:GetPropertyChangedSignal('AbsoluteSize'):Connect(UpdatePickerPosition)
 
         local PickerFrameInner = Library:Create('Frame', {
             BackgroundColor3 = Library.BackgroundColor;
@@ -1039,7 +1056,7 @@ do
 
             if TransparencyBoxInner then
                 TransparencyBoxInner.BackgroundColor3 = ColorPicker.Value;
-                TransparencyCursor.Position = UDim2.new(1 - ColorPicker.Transparency, 0, 0, 0);
+                TransparencyCursor.Position = UDim2.new(1 - ColorPicker.Transparency, (ColorPicker.Transparency * 4) - 2, 0, 0);
             end;
 
             CursorOuter.Position = UDim2.new(ColorPicker.Sat, 0, 1 - ColorPicker.Vib, 0);
@@ -1067,6 +1084,7 @@ do
 
             PickerFrameOuter.Visible = true;
             Library.OpenedFrames[PickerFrameOuter] = true;
+            UpdatePickerPosition();
         end;
 
         function ColorPicker:Hide()
@@ -2297,12 +2315,17 @@ do
         });
 
         local DisplayLabel = Library:CreateLabel({
-            Size = UDim2.new(1, 0, 1, 0);
+            Position = UDim2.fromOffset(0, -1);
+            Size = UDim2.new(1, -9, 1, 1);
             TextSize = 13;
             Text = 'Infinite';
+            TextXAlignment = Info.Compact and Enum.TextXAlignment.Center or Enum.TextXAlignment.Right;
             ZIndex = 9;
             Parent = SliderInner;
         });
+
+        DisplayLabel.TextStrokeColor3 = Library.Black;
+        DisplayLabel.TextStrokeTransparency = 0.45;
 
         Library:OnHighlight(SliderOuter, SliderOuter,
             { BorderColor3 = 'AccentColor' },
@@ -2624,7 +2647,7 @@ do
 
             ScrollBarThickness = 2,
             ScrollBarImageColor3 = Library.AccentColor,
-            ScrollBarImageTransparency = 0.28,
+            ScrollBarImageTransparency = 0.58,
         });
 
         local function UpdateDropdownSearch()
@@ -2757,7 +2780,7 @@ do
                     Parent = Scrolling;
                 });
 
-                Library:ModernizeFrame(Button, Library.Modern.SmallRadius, 'OutlineColor', 0.48);
+                Library:ModernizeFrame(Button, Library.Modern.SmallRadius, 'OutlineColor', 0.62);
 
                 Library:AddToRegistry(Button, {
                     BackgroundColor3 = 'MainColor';
@@ -3554,7 +3577,7 @@ function Library:CreateWindow(...)
             TopImage = '';
             ScrollBarThickness = 2;
             ScrollBarImageColor3 = Library.AccentColor;
-            ScrollBarImageTransparency = 0.35;
+            ScrollBarImageTransparency = 0.72;
             ZIndex = 2;
             Parent = TabFrame;
         });
@@ -3569,7 +3592,7 @@ function Library:CreateWindow(...)
             TopImage = '';
             ScrollBarThickness = 2;
             ScrollBarImageColor3 = Library.AccentColor;
-            ScrollBarImageTransparency = 0.35;
+            ScrollBarImageTransparency = 0.72;
             ZIndex = 2;
             Parent = TabFrame;
         });
