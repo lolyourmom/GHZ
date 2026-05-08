@@ -38,6 +38,7 @@ local Library = {
 
     Black = Color3.fromRGB(5, 7, 10);
     Font = Enum.Font.Gotham,
+    CustomCursor = false;
 
     Modern = {
         Enabled = true;
