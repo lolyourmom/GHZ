@@ -3424,7 +3424,7 @@ function Library:CreateWindow(...)
         Parent = Outer;
     });
 
-    Library:ModernizeFrame(Inner, Library.Modern.LargeRadius, 'AccentColor', 0.08);
+    Library:ModernizeFrame(Inner, Library.Modern.LargeRadius, 'AccentColor', 0.18);
 
     Library:AddToRegistry(Inner, {
         BackgroundColor3 = 'MainColor';
@@ -3477,8 +3477,8 @@ function Library:CreateWindow(...)
 
     local TabArea = Library:Create('Frame', {
         BackgroundTransparency = 1;
-        Position = UDim2.new(0, 8, 0, 8);
-        Size = UDim2.new(1, -16, 0, 24);
+        Position = UDim2.new(0, 8, 0, 9);
+        Size = UDim2.new(1, -16, 0, 22);
         ZIndex = 1;
         Parent = MainSectionInner;
     });
@@ -3494,8 +3494,8 @@ function Library:CreateWindow(...)
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.OutlineColor;
         BorderSizePixel = 0;
-        Position = UDim2.new(0, 8, 0, 36);
-        Size = UDim2.new(1, -16, 1, -44);
+        Position = UDim2.new(0, 8, 0, 38);
+        Size = UDim2.new(1, -16, 1, -46);
         ZIndex = 2;
         Parent = MainSectionInner;
     });
@@ -3578,9 +3578,9 @@ function Library:CreateWindow(...)
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
-            ScrollBarThickness = 2;
+            ScrollBarThickness = 1;
             ScrollBarImageColor3 = Library.AccentColor;
-            ScrollBarImageTransparency = 0.72;
+            ScrollBarImageTransparency = 0.88;
             ZIndex = 2;
             Parent = TabFrame;
         });
@@ -3593,9 +3593,9 @@ function Library:CreateWindow(...)
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
-            ScrollBarThickness = 2;
+            ScrollBarThickness = 1;
             ScrollBarImageColor3 = Library.AccentColor;
-            ScrollBarImageTransparency = 0.72;
+            ScrollBarImageTransparency = 0.88;
             ZIndex = 2;
             Parent = TabFrame;
         });
@@ -3822,7 +3822,7 @@ function Library:CreateWindow(...)
                 Parent = BoxInner;
             });
 
-            local TabboxButtonGap = 2;
+            local TabboxButtonGap = 3;
 
             Library:Create('UIListLayout', {
                 Padding = UDim.new(0, TabboxButtonGap);
