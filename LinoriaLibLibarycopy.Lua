@@ -3424,7 +3424,7 @@ function Library:CreateWindow(...)
         Parent = Outer;
     });
 
-    Library:ModernizeFrame(Inner, Library.Modern.LargeRadius, 'AccentColor', 0.18);
+    Library:ModernizeFrame(Inner, Library.Modern.LargeRadius, 'AccentColor', 0.28);
 
     Library:AddToRegistry(Inner, {
         BackgroundColor3 = 'MainColor';
@@ -3432,8 +3432,8 @@ function Library:CreateWindow(...)
     });
 
     local WindowLabel = Library:CreateLabel({
-        Position = UDim2.new(0, 7, 0, 0);
-        Size = UDim2.new(1, -14, 0, 25);
+        Position = UDim2.new(0, 10, 0, 2);
+        Size = UDim2.new(1, -20, 0, 25);
         Text = Config.Title or '';
         TextXAlignment = Enum.TextXAlignment.Left;
         ZIndex = 1;
@@ -3446,8 +3446,8 @@ function Library:CreateWindow(...)
         BackgroundColor3 = Library.BackgroundColor;
         BorderColor3 = Library.OutlineColor;
         BorderSizePixel = 0;
-        Position = UDim2.new(0, 8, 0, 25);
-        Size = UDim2.new(1, -16, 1, -33);
+        Position = UDim2.new(0, 8, 0, 28);
+        Size = UDim2.new(1, -16, 1, -36);
         ZIndex = 1;
         Parent = Inner;
     });
