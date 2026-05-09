@@ -38,7 +38,7 @@ local Library = {
 
     Black = Color3.new(0, 0, 0);
     Font = Enum.Font.Gotham,
-    CustomCursor = false;
+    CustomCursor = true;
     KeybindsActiveOnly = false;
 
     Modern = {
